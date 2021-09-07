@@ -9,20 +9,19 @@ const jwt = require("jsonwebtoken");
 
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
-app.get("/api/users/:userId/notes", async (req, res, next) => {
+const requireToken = async (req, res, next) => {
   try {
-    const userId = req.params.userId;
-    const _data = await User.byToken(req.headers.authorization)
-    const data = await Note.findAll({
-      where: {
-        userId: userId,
-      },
-      incude: User,
-    });
-    res.send(data);
+    const token = req.headers.authorization;
+    const user = await User.byToken(token);
+    req.user = user;
+    next();
   } catch (error) {
     next(error);
   }
+};
+
+app.get("/api/users/:userId/notes", requireToken, (req, res, next) => {
+  res.send(req.user);
 });
 
 app.post("/api/auth", async (req, res, next) => {
@@ -33,12 +32,8 @@ app.post("/api/auth", async (req, res, next) => {
   }
 });
 
-app.get("/api/auth", async (req, res, next) => {
-  try {
-    res.send(await User.byToken(req.headers.authorization));
-  } catch (ex) {
-    next(ex);
-  }
+app.get("/api/auth", requireToken, (req, res, next) => {
+  res.send(req.user);
 });
 
 app.use((err, req, res, next) => {

@@ -75,7 +75,7 @@
               },
             });
             this.setState({ auth: response.data }, async () => {
-              const { data: notes } = await axios.get(
+              const { data } = await axios.get(
                 `/api/users/${this.state.auth.id}/notes`,
                 {
                   headers: {
@@ -83,14 +83,9 @@
                   },
                 }
               );
-              this.setState(
-                {
-                  notes: notes,
-                },
-                () => {
-                  console.log(this.state);
-                }
-              );
+              this.setState({
+                notes: data.notes,
+              });
             });
           }
         }
